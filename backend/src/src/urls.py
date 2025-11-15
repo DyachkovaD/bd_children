@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/', include([
         path('', include('auth.urls')),
         path('', include(router.urls)),
+        path('', include('permissions.urls')),
 
     ])),
 ]
