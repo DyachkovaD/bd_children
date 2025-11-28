@@ -5,7 +5,7 @@ from .models import Permission, ObjectPermission, UserRole, ModelPermissionConfi
 
 
 class ContentTypeSerializer(serializers.ModelSerializer):
-    app_label = serializers.CharField(source='app_label')
+    app_label = serializers.CharField()
     model_name = serializers.CharField(source='model')
     verbose_name = serializers.SerializerMethodField()
 
@@ -45,6 +45,11 @@ class UserRoleSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    users = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False
+    )
     users_count = serializers.IntegerField(source='users.count', read_only=True)
 
     class Meta:
@@ -64,6 +69,7 @@ class UserRoleSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         permissions_ids = validated_data.pop('permissions_ids', None)
+        users_ids = validated_data.pop('users', None)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -72,6 +78,10 @@ class UserRoleSerializer(serializers.ModelSerializer):
         if permissions_ids is not None:
             permissions = Permission.objects.filter(id__in=permissions_ids)
             instance.permissions.set(permissions)
+
+        if users_ids is not None:
+            users = User.objects.filter(id__in=users_ids)
+            instance.users.set(users)
 
         return instance
 

@@ -29,15 +29,23 @@ def create_model_permissions(model_class, config=None):
     created_permissions = []
     for action, name, description in permissions_data:
         codename = get_permission_codename(action, model_class)
-        permission, created = Permission.objects.get_or_create(
-            codename=codename,
-            content_type=content_type,
-            defaults={
-                'name': name,
-                'description': description
-            }
-        )
-        created_permissions.append(permission)
+        # Проверяем, существует ли уже такое разрешение
+        try:
+            permission = Permission.objects.get(
+                codename=codename,
+                content_type=content_type
+            )
+            # Разрешение уже существует, добавляем в список
+            created_permissions.append(permission)
+        except Permission.DoesNotExist:
+            # Создаем новое разрешение
+            permission = Permission.objects.create(
+                codename=codename,
+                content_type=content_type,
+                name=name,
+                description=description
+            )
+            created_permissions.append(permission)
 
     # Создаем или обновляем конфигурацию модели
     if config is None:
@@ -109,8 +117,18 @@ def initialize_all_models():
     from django.apps import apps
 
     managed_models = []
-    for app_config in apps.get_app_configs():
-        for model in app_config.get_models():
+
+    # Получаем конкретное приложение children
+    try:
+        children_app = apps.get_app_config('children')
+        models_list = children_app.get_models()
+    except LookupError:
+        # Если приложение children не найдено, возвращаем пустой список
+        print("Приложение 'children' не найдено")
+        return managed_models
+
+    for model in models_list:
+        try:
             content_type = ContentType.objects.get_for_model(model)
             config, created = ModelPermissionConfig.objects.get_or_create(
                 content_type=content_type,
@@ -120,5 +138,8 @@ def initialize_all_models():
             if config.auto_create_permissions and config.is_managed:
                 create_model_permissions(model, config)
                 managed_models.append(model._meta.verbose_name)
+        except Exception as e:
+            print(f"Ошибка при инициализации модели {model._meta.verbose_name}: {e}")
+            continue
 
     return managed_models

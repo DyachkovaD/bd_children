@@ -5,11 +5,12 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Q, Count
 from datetime import datetime
 
+from permissions.permissions import ModelPermissionMixin
 from .models import School, Child
 from .serializers import SchoolSerializer, ChildSerializer, ChildCreateSerializer
 
 
-class SchoolViewSet(viewsets.ModelViewSet):
+class SchoolViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
     """
     ViewSet для управления школами.
 
@@ -58,7 +59,7 @@ class SchoolViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class ChildViewSet(viewsets.ModelViewSet):
+class ChildViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
     """
     ViewSet для управления учащимися.
 
