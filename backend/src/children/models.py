@@ -18,6 +18,11 @@ class Child(models.Model):
 
     school =  models.ForeignKey('children.School', on_delete=models.PROTECT)
 
+    class Meta:
+        verbose_name = "Учащийся"
+        verbose_name_plural = "Учащиеся"
+        ordering = ["last_name"]
+
 
 class School(models.Model):
     """Модель учащегося"""
@@ -25,4 +30,9 @@ class School(models.Model):
     short_name = models.CharField("Краткое название", max_length=100)
     director = models.CharField("Имя директора", max_length=100)
     address = models.CharField("Адрес", max_length=100)
+
+    class Meta:
+        verbose_name = "Школа"
+        verbose_name_plural = "Школы"
+        ordering = ["full_name"]
 

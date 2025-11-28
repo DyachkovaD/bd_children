@@ -38,12 +38,36 @@ class UserRoleViewSet(viewsets.ModelViewSet):
     serializer_class = UserRoleSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            queryset = queryset.filter(users__id=user_id)
+
+        return queryset
+
 
 class ObjectPermissionViewSet(viewsets.ModelViewSet):
     queryset = ObjectPermission.objects.all().select_related('user', 'permission', 'content_type')
     serializer_class = ObjectPermissionSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Фильтрация по пользователю
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+
+        # Фильтрация по модели
+        model_name = self.request.query_params.get('model_name')
+        if model_name:
+            content_type = ContentType.objects.get(model=model_name)
+            queryset = queryset.filter(content_type=content_type)
+
+        return queryset
 
 class ModelPermissionConfigViewSet(viewsets.ModelViewSet):
     queryset = ModelPermissionConfig.objects.all().select_related('content_type')
@@ -55,6 +79,24 @@ class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ContentType.objects.all()
     serializer_class = ContentTypeSerializer
     permission_classes = [IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        # Базовый queryset - все ContentType
+        queryset = ContentType.objects.all()
+
+        # Фильтруем только модели, для которых включено управление разрешениями
+        managed_models = ModelPermissionConfig.objects.filter(
+            is_managed=True
+        ).values_list('content_type_id', flat=True)
+
+        queryset = queryset.filter(id__in=managed_models)
+
+        # Дополнительная фильтрация по приложению (опционально)
+        app_label = self.request.query_params.get('app_label')
+        if app_label:
+            queryset = queryset.filter(app_label=app_label)
+
+        return queryset
 
 
 class PermissionManagerViewSet(viewsets.ViewSet):
