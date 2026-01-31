@@ -21,7 +21,7 @@ class ChildSerializer(serializers.ModelSerializer):
     Включает все поля модели плюс название школы для удобства отображения.
     Используется для операций списка и создания.
     """
-    school_name = serializers.CharField(source='school.name', read_only=True)
+    school_name = serializers.CharField(source='school.short_name', read_only=True)
 
     class Meta:
         model = Child

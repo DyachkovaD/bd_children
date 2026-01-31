@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учёт учащихся</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <div class="header-inner">
+                <h1 class="logo">Учёт учащихся</h1>
+                <nav class="nav" id="mainNav" style="display: none;">
+                    <a href="#" data-page="schools">Школы</a>
+                    <a href="#" data-page="children">Учащиеся</a>
+                    <a href="#" data-page="stats">Статистика</a>
+                </nav>
+                <div class="header-actions" id="headerActions" style="display: none;">
+                    <span class="user-name" id="userName"></span>
+                    <button type="button" class="btn btn-outline" id="btnLogout">Выход</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <section id="authSection" class="auth-section">
+                <div class="auth-card">
+                    <h2>Вход в систему</h2>
+                    <form id="loginForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="loginUsername">Имя пользователя <span class="required">*</span></label>
+                            <input type="text" id="loginUsername" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Пароль <span class="required">*</span></label>
+                            <input type="password" id="loginPassword" required autocomplete="current-password">
+                        </div>
+                        <p class="form-error" id="loginError"></p>
+                        <button type="submit" class="btn btn-primary btn-block">Войти</button>
+                    </form>
+                    <p class="auth-switch">Нет аккаунта? <a href="#" id="showRegister">Зарегистрироваться</a></p>
+                </div>
+                <div class="auth-card" id="registerCard" style="display: none;">
+                    <h2>Регистрация</h2>
+                    <form id="registerForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="regUsername">Имя пользователя <span class="required">*</span></label>
+                            <input type="text" id="regUsername" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="regEmail">Email <span class="required">*</span></label>
+                            <input type="email" id="regEmail" required autocomplete="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Пароль <span class="required">*</span></label>
+                            <input type="password" id="regPassword" required autocomplete="new-password">
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword2">Повторите пароль <span class="required">*</span></label>
+                            <input type="password" id="regPassword2" required autocomplete="new-password">
+                        </div>
+                        <p class="form-error" id="registerError"></p>
+                        <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
+                    </form>
+                    <p class="auth-switch">Есть аккаунт? <a href="#" id="showLogin">Войти</a></p>
+                </div>
+            </section>
+
+            <section id="contentSection" class="content-section" style="display: none;">
+                <div class="page" id="pageSchools">
+                    <div class="page-header">
+                        <h2>Школы</h2>
+                        <button type="button" class="btn btn-primary" id="btnAddSchool">Добавить школу</button>
+                    </div>
+                    <div class="toolbar">
+                        <input type="text" id="filterSchoolName" class="input" placeholder="Поиск по названию">
+                        <input type="text" id="filterSchoolDirector" class="input" placeholder="Поиск по директору">
+                        <button type="button" class="btn btn-outline" id="btnFilterSchools">Найти</button>
+                        <button type="button" class="btn btn-outline" id="btnClearSchoolFilters">Убрать фильтры</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Краткое название</th>
+                                    <th>Полное название</th>
+                                    <th>Директор</th>
+                                    <th>Адрес</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="schoolsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="page" id="pageChildren" style="display: none;">
+                    <div class="page-header">
+                        <h2>Учащиеся</h2>
+                        <button type="button" class="btn btn-primary" id="btnAddChild">Добавить учащегося</button>
+                    </div>
+                    <div class="toolbar">
+                        <select id="filterChildSchool" class="input">
+                            <option value="">Все школы</option>
+                        </select>
+                        <input type="text" id="filterChildSearch" class="input" placeholder="Поиск по ФИО">
+                        <button type="button" class="btn btn-outline" id="btnFilterChildren">Найти</button>
+                        <button type="button" class="btn btn-outline" id="btnClearChildFilters">Убрать фильтры</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ФИО</th>
+                                    <th>Класс</th>
+                                    <th>Школа</th>
+                                    <th>Дата рождения</th>
+                                    <th>Статус семьи</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="childrenTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="page" id="pageStats" style="display: none;">
+                    <h2>Статистика</h2>
+                    <div class="stats-grid" id="statsGrid"></div>
+                </div>
+            </section>
+        </main>
+
+        <div class="modal" id="modalSchool" aria-hidden="true">
+            <div class="modal-backdrop" data-close="modalSchool"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalSchoolTitle">Школа</h3>
+                    <button type="button" class="modal-close" data-close="modalSchool" aria-label="Закрыть">&times;</button>
+                </div>
+                <form id="formSchool">
+                    <input type="hidden" id="schoolId">
+                    <div class="form-group">
+                        <label for="schoolFullName">Полное название <span class="required">*</span></label>
+                        <input type="text" id="schoolFullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="schoolShortName">Краткое название <span class="required">*</span></label>
+                        <input type="text" id="schoolShortName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="schoolDirector">Директор <span class="required">*</span></label>
+                        <input type="text" id="schoolDirector" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="schoolAddress">Адрес <span class="required">*</span></label>
+                        <input type="text" id="schoolAddress" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" data-close="modalSchool">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal" id="modalChild" aria-hidden="true">
+            <div class="modal-backdrop" data-close="modalChild"></div>
+            <div class="modal-content modal-content-wide">
+                <div class="modal-header">
+                    <h3 id="modalChildTitle">Учащийся</h3>
+                    <button type="button" class="modal-close" data-close="modalChild" aria-label="Закрыть">&times;</button>
+                </div>
+                <form id="formChild">
+                    <input type="hidden" id="childId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="childLastName">Фамилия <span class="required">*</span></label>
+                            <input type="text" id="childLastName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="childFirstName">Имя <span class="required">*</span></label>
+                            <input type="text" id="childFirstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="childPatronymic">Отчество</label>
+                            <input type="text" id="childPatronymic">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="childBirthday">Дата рождения <span class="required">*</span></label>
+                            <input type="date" id="childBirthday" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="childClass">Класс <span class="required">*</span></label>
+                            <input type="number" id="childClass" min="1" max="11" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="childSchool">Школа <span class="required">*</span></label>
+                            <select id="childSchool" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="childAddress">Адрес <span class="required">*</span></label>
+                        <input type="text" id="childAddress" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="childHealth">Состояние здоровья</label>
+                            <input type="text" id="childHealth">
+                        </div>
+                        <div class="form-group">
+                            <label for="childFamily">Статус семьи</label>
+                            <input type="text" id="childFamily">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="childNote">Примечание</label>
+                        <textarea id="childNote" rows="2"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" data-close="modalChild">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="toast" id="toast" aria-live="polite"></div>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -33,7 +33,14 @@ class SchoolViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
         # Ручная фильтрация по названию (точное совпадение)
         name = self.request.query_params.get('name')
         if name:
-            queryset = queryset.filter(name__iexact=name)
+            queryset = queryset.filter(full_name__iexact=name)
+
+        # Поиск по наименованию школы (полное или краткое, частичное совпадение)
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(full_name__icontains=search) | Q(short_name__icontains=search)
+            )
 
         # Ручная фильтрация по директору (частичное совпадение)
         director = self.request.query_params.get('director')
@@ -205,7 +212,7 @@ class ChildViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
             count = Child.objects.filter(school=school).count()
             school_stats.append({
                 'school_id': school.id,
-                'school_name': school.name,
+                'school_name': school.short_name,
                 'children_count': count
             })
 

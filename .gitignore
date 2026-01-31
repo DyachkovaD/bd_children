@@ -24,3 +24,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+# Django
+staticfiles/
+media/
+db.sqlite3
+*.log

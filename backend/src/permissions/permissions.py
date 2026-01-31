@@ -157,10 +157,11 @@ class ModelPermissionMixin:
 
         # Заменяем плейсхолдер {model} на имя реальной модели
         model_name = self.queryset.model._meta.model_name
-        for i, perm_class in enumerate(permission_classes):
-            if hasattr(perm_class, 'permission_codename') and perm_class.permission_codename:
+        for i, perm_instance in enumerate(permission_classes):
+            if hasattr(perm_instance, 'permission_codename') and perm_instance.permission_codename:
+                perm_class = type(perm_instance)
                 permission_classes[i] = type(perm_class.__name__, (perm_class,), {
-                    'permission_codename': perm_class.permission_codename.format(model=model_name),
+                    'permission_codename': perm_instance.permission_codename.format(model=model_name),
                     'model_class': self.queryset.model
                 })
 
