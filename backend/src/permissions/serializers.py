@@ -45,6 +45,7 @@ class UserRoleSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    users_ids = serializers.SerializerMethodField(read_only=True)
     users = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
@@ -55,7 +56,10 @@ class UserRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRole
         fields = ['id', 'name', 'description', 'is_global', 'permissions',
-                  'permissions_ids', 'users_count', 'users']
+                  'permissions_ids', 'users_ids', 'users_count', 'users']
+
+    def get_users_ids(self, obj):
+        return list(obj.users.values_list('id', flat=True))
 
     def create(self, validated_data):
         permissions_ids = validated_data.pop('permissions_ids', [])

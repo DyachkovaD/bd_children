@@ -1,6 +1,6 @@
 from rest_framework import permissions
 from django.contrib.contenttypes.models import ContentType
-from .utils import check_permission, get_permission_codename
+from .utils import check_permission, get_permission_codename, is_administrator
 from .models import ModelPermissionConfig
 
 
@@ -166,6 +166,16 @@ class ModelPermissionMixin:
                 })
 
         return [permission() for permission in permission_classes]
+
+
+class IsAdministrator(permissions.BasePermission):
+    """Доступ только для пользователей с ролью Administrator (или staff/superuser)."""
+
+    def has_permission(self, request, view):
+        return is_administrator(request.user)
+
+    def has_object_permission(self, request, view, obj):
+        return is_administrator(request.user)
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):

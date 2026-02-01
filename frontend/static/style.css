@@ -88,6 +88,43 @@ body {
   gap: 1rem;
 }
 
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.btn-icon:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.btn-icon:active {
+  transform: scale(0.96);
+}
+
+.btn-icon.btn-refresh svg {
+  display: block;
+}
+
+.btn-icon.btn-refresh.loading svg {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .user-name {
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -206,6 +243,18 @@ body {
   background: var(--bg);
 }
 
+/* Кнопка "Найти" - выделенная */
+.btn-search {
+  background: var(--primary);
+  color: #fff;
+  border: 1px solid var(--primary);
+}
+
+.btn-search:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
 .btn-block {
   width: 100%;
 }
@@ -238,8 +287,8 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .page-header h2 {
@@ -247,11 +296,65 @@ body {
   font-size: 1.35rem;
 }
 
+.page-header-with-filters {
+  flex-wrap: wrap;
+  row-gap: 0.75rem;
+}
+
+.page-header-with-filters .toolbar-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-filters .input,
+.toolbar-filters input.input {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.875rem;
+  min-width: 0;
+  width: auto;
+  max-width: 145px;
+}
+
+.toolbar-filters input[placeholder="ФИО"] {
+  width: 165px;
+  max-width: 165px;
+}
+
+.toolbar-filters .btn {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.85rem;
+}
+
 .toolbar {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.toolbar .input,
+.toolbar input.input {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.875rem;
+  min-width: 0;
+  max-width: 140px;
+}
+
+.toolbar .btn {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.85rem;
 }
 
 .input {
@@ -276,7 +379,6 @@ select.input {
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  overflow: auto;
 }
 
 .table {
@@ -289,14 +391,22 @@ select.input {
   padding: 0.75rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
 
-.table th {
+.table thead th {
   font-weight: 600;
   font-size: 0.85rem;
   color: var(--text-muted);
   background: var(--bg);
+  position: sticky;
+  top: 56px;
+  z-index: 2;
+  box-shadow: 0 1px 0 var(--border);
+  vertical-align: middle;
+  line-height: 1.4;
 }
+
 
 .table tbody tr:hover {
   background: #fafafa;
@@ -308,6 +418,99 @@ select.input {
 
 .table .actions button {
   margin-left: 0.35rem;
+}
+
+/* Icon buttons */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  margin-left: 0.25rem;
+}
+
+.btn-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-icon-edit {
+  color: var(--primary);
+}
+
+.btn-icon-edit:hover {
+  background: rgba(52, 152, 219, 0.1);
+  color: #2980b9;
+}
+
+.btn-icon-delete {
+  color: #e74c3c;
+}
+
+.btn-icon-delete:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: #c0392b;
+}
+
+.btn-icon-users {
+  color: var(--text-muted);
+}
+
+.btn-icon-users:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text);
+}
+
+.btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-icon:disabled:hover {
+  background: transparent;
+}
+
+.btn-icon:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Pagination */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  margin-top: 0.5rem;
+}
+
+.pagination-info {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-page {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
 }
 
 /* Stats */
@@ -398,6 +601,40 @@ select.input {
   max-width: 560px;
 }
 
+.modal-content-sm {
+  max-width: 340px;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-body p {
+  margin: 0;
+}
+
+.modal-content-sm .modal-header {
+  padding: 0.6rem 1.25rem;
+}
+
+.modal-content-sm .modal-header h3 {
+  font-size: 1rem;
+}
+
+.modal-content-sm .modal-body {
+  padding: 0.6rem 1.25rem;
+}
+
+.modal-content-sm .modal-body p {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.modal-content-sm .modal-actions {
+  padding: 0.5rem 1.25rem 0.75rem;
+  margin-top: 0.5rem;
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -470,11 +707,19 @@ label .required {
 
 .modal-actions {
   display: flex;
+  align-items: center;
   gap: 0.75rem;
   justify-content: flex-end;
   margin-top: 1.5rem;
-  padding-top: 1rem;
+  padding: 1rem 1.5rem 1.5rem;
   border-top: 1px solid var(--border);
+}
+
+.modal form .modal-actions {
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 /* Toast */
@@ -512,4 +757,157 @@ label .required {
 /* Date in table */
 .date-cell {
   white-space: nowrap;
+}
+
+/* Children table column widths */
+#childrenTableBody td:nth-child(3) {
+  /* Школа - увеличиваем */
+  min-width: 180px;
+  max-width: 280px;
+}
+
+#childrenTableBody td:nth-child(5) {
+  /* Статус семьи - компактно */
+  max-width: 140px;
+}
+
+#childrenTableBody td:nth-child(6) {
+  /* Состояние здоровья - расширяем */
+  min-width: 150px;
+}
+
+#pageChildren .table thead th:nth-child(3) {
+  /* Школа - header */
+  min-width: 180px;
+  max-width: 280px;
+}
+
+#pageChildren .table thead th:nth-child(5) {
+  /* Статус семьи - header */
+  max-width: 140px;
+}
+
+#pageChildren .table thead th:nth-child(6) {
+  /* Состояние здоровья - header */
+  min-width: 150px;
+}
+
+/* Permissions page */
+.permissions-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 900px) {
+  .permissions-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.permissions-section h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.permissions-by-model {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.permission-model-group {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+.permission-model-group h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.permission-model-group ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.permission-model-group li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.permission-model-group li:last-child {
+  border-bottom: none;
+}
+
+.permission-model-group .muted {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.checkbox-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.checkbox-list label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+  cursor: pointer;
+  font-weight: normal;
+  min-height: 1.5em;
+  line-height: 1.4;
+}
+
+.checkbox-list input[type="checkbox"] {
+  margin: 0 0.75rem 0 0;
+  flex-shrink: 0;
+  align-self: center;
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}
+
+#formRole .form-group {
+  margin-bottom: 0.65rem;
+}
+
+#formRole .form-group label {
+  margin-bottom: 0.25rem;
+}
+
+#formRole .form-group > label:has(input[type="checkbox"]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+#formRole .form-group > label:has(input[type="checkbox"]) input[type="checkbox"] {
+  margin: 0 0.75rem 0 0;
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}
+
+#formRole .modal-actions {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
 }

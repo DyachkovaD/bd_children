@@ -13,13 +13,13 @@ from .serializers import (
     UserPermissionsSerializer,
     ContentTypeSerializer
 )
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdministrator
 from .utils import get_user_permissions, initialize_all_models
 
 class PermissionViewSet(viewsets.ModelViewSet):
     queryset = Permission.objects.all().select_related('content_type')
     serializer_class = PermissionSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdministrator]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -36,7 +36,7 @@ class PermissionViewSet(viewsets.ModelViewSet):
 class UserRoleViewSet(viewsets.ModelViewSet):
     queryset = UserRole.objects.all().prefetch_related('permissions', 'users')
     serializer_class = UserRoleSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdministrator]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -51,7 +51,7 @@ class UserRoleViewSet(viewsets.ModelViewSet):
 class ObjectPermissionViewSet(viewsets.ModelViewSet):
     queryset = ObjectPermission.objects.all().select_related('user', 'permission', 'content_type')
     serializer_class = ObjectPermissionSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdministrator]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -72,13 +72,13 @@ class ObjectPermissionViewSet(viewsets.ModelViewSet):
 class ModelPermissionConfigViewSet(viewsets.ModelViewSet):
     queryset = ModelPermissionConfig.objects.all().select_related('content_type')
     serializer_class = ModelPermissionConfigSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdministrator]
 
 
 class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ContentType.objects.all()
     serializer_class = ContentTypeSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdministrator]
 
     def get_queryset(self):
         # Базовый queryset - все ContentType
@@ -101,7 +101,7 @@ class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
 
 class PermissionManagerViewSet(viewsets.ViewSet):
     """ViewSet для управления разрешениями"""
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdministrator]
 
     @action(detail=False, methods=['post'])
     def grant_object_permission(self, request):

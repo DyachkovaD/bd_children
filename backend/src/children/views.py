@@ -8,6 +8,7 @@ from datetime import datetime
 from permissions.permissions import ModelPermissionMixin
 from .models import School, Child
 from .serializers import SchoolSerializer, ChildSerializer, ChildCreateSerializer
+from .pagination import DataPageNumberPagination
 
 
 class SchoolViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
@@ -16,10 +17,11 @@ class SchoolViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
 
     Предоставляет полный CRUD функционал для модели School.
     Поддерживает поиск по названию школы и ФИО директора.
+    Пагинация: page, page_size (max 100).
     """
-
     queryset = School.objects.all()
     serializer_class = SchoolSerializer
+    pagination_class = DataPageNumberPagination
 
     def get_queryset(self):
         """
@@ -72,17 +74,19 @@ class ChildViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
 
     Предоставляет полный CRUD функционал для модели Child.
     Поддерживает расширенную фильтрацию, поиск и сортировку.
+    Пагинация: page, page_size (max 100).
 
     Доступные фильтры через query parameters:
     - school: фильтрация по ID школы (точное совпадение)
+    - q: поиск по имени, фамилии или отчеству (частичное совпадение)
     - family_status: фильтрация по статусу семьи (точное совпадение)
     - health_status: фильтрация по состоянию здоровья (точное совпадение)
     - birth_year: фильтрация по году рождения
     - birthday_from: фильтрация по дате рождения (от указанной даты)
     - birthday_to: фильтрация по дате рождения (до указанной даты)
     """
-
     queryset = Child.objects.all()
+    pagination_class = DataPageNumberPagination
 
     def get_serializer_class(self):
         """
@@ -106,6 +110,15 @@ class ChildViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
         school_id = self.request.query_params.get('school')
         if school_id:
             queryset = queryset.filter(school_id=school_id)
+
+        # Поиск по имени, фамилии или отчеству
+        q = self.request.query_params.get('q', '').strip()
+        if q:
+            queryset = queryset.filter(
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(patronymic__icontains=q)
+            )
 
         # Фильтрация по статусу семьи
         family_status = self.request.query_params.get('family_status')

@@ -15,11 +15,16 @@
             <div class="header-inner">
                 <h1 class="logo">Учёт учащихся</h1>
                 <nav class="nav" id="mainNav" style="display: none;">
-                    <a href="#" data-page="schools">Школы</a>
-                    <a href="#" data-page="children">Учащиеся</a>
-                    <a href="#" data-page="stats">Статистика</a>
+                    <a href="#schools" data-page="schools">Школы</a>
+                    <a href="#children" data-page="children">Учащиеся</a>
+                    <a href="#stats" data-page="stats">Статистика</a>
+                    <a href="#users" data-page="users" id="navUsers" style="display: none;">Пользователи</a>
+                    <a href="#permissions" data-page="permissions" id="navPermissions" style="display: none;">Разрешения</a>
                 </nav>
                 <div class="header-actions" id="headerActions" style="display: none;">
+                    <button type="button" class="btn-icon btn-refresh" id="btnRefresh" title="Обновить данные" aria-label="Обновить данные">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    </button>
                     <span class="user-name" id="userName"></span>
                     <button type="button" class="btn btn-outline" id="btnLogout">Выход</button>
                 </div>
@@ -72,15 +77,15 @@
 
             <section id="contentSection" class="content-section" style="display: none;">
                 <div class="page" id="pageSchools">
-                    <div class="page-header">
+                    <div class="page-header page-header-with-filters">
                         <h2>Школы</h2>
+                        <div class="toolbar-inline toolbar-filters">
+                            <input type="text" id="filterSchoolName" class="input" placeholder="Название" title="Поиск по названию">
+                            <input type="text" id="filterSchoolDirector" class="input" placeholder="Директор" title="Поиск по директору">
+                            <button type="button" class="btn btn-search" id="btnFilterSchools">Найти</button>
+                            <button type="button" class="btn btn-outline" id="btnClearSchoolFilters">Сбросить</button>
+                        </div>
                         <button type="button" class="btn btn-primary" id="btnAddSchool">Добавить школу</button>
-                    </div>
-                    <div class="toolbar">
-                        <input type="text" id="filterSchoolName" class="input" placeholder="Поиск по названию">
-                        <input type="text" id="filterSchoolDirector" class="input" placeholder="Поиск по директору">
-                        <button type="button" class="btn btn-outline" id="btnFilterSchools">Найти</button>
-                        <button type="button" class="btn btn-outline" id="btnClearSchoolFilters">Убрать фильтры</button>
                     </div>
                     <div class="table-wrap">
                         <table class="table">
@@ -96,20 +101,27 @@
                             <tbody id="schoolsTableBody"></tbody>
                         </table>
                     </div>
+                    <div class="pagination-bar" id="schoolsPagination"></div>
                 </div>
 
                 <div class="page" id="pageChildren" style="display: none;">
-                    <div class="page-header">
+                    <div class="page-header page-header-with-filters">
                         <h2>Учащиеся</h2>
+                        <div class="toolbar-inline toolbar-filters">
+                            <select id="filterChildSchool" class="input" title="Школа">
+                                <option value="">Все школы</option>
+                            </select>
+                            <input type="text" id="filterChildSearch" class="input" placeholder="ФИО" maxlength="40">
+                            <select id="filterChildFamily" class="input" title="Статус семьи">
+                                <option value="">Семья</option>
+                            </select>
+                            <select id="filterChildHealth" class="input" title="Здоровье">
+                                <option value="">Здоровье</option>
+                            </select>
+                            <button type="button" class="btn btn-search" id="btnFilterChildren">Найти</button>
+                            <button type="button" class="btn btn-outline" id="btnClearChildFilters">Сбросить</button>
+                        </div>
                         <button type="button" class="btn btn-primary" id="btnAddChild">Добавить учащегося</button>
-                    </div>
-                    <div class="toolbar">
-                        <select id="filterChildSchool" class="input">
-                            <option value="">Все школы</option>
-                        </select>
-                        <input type="text" id="filterChildSearch" class="input" placeholder="Поиск по ФИО">
-                        <button type="button" class="btn btn-outline" id="btnFilterChildren">Найти</button>
-                        <button type="button" class="btn btn-outline" id="btnClearChildFilters">Убрать фильтры</button>
                     </div>
                     <div class="table-wrap">
                         <table class="table">
@@ -120,17 +132,73 @@
                                     <th>Школа</th>
                                     <th>Дата рождения</th>
                                     <th>Статус семьи</th>
+                                    <th>Состояние здоровья</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody id="childrenTableBody"></tbody>
                         </table>
                     </div>
+                    <div class="pagination-bar" id="childrenPagination"></div>
                 </div>
 
                 <div class="page" id="pageStats" style="display: none;">
                     <h2>Статистика</h2>
                     <div class="stats-grid" id="statsGrid"></div>
+                </div>
+
+                <div class="page" id="pageUsers" style="display: none;">
+                    <div class="page-header">
+                        <h2>Пользователи</h2>
+                        <button type="button" class="btn btn-primary" id="btnAddUser">Добавить пользователя</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Имя пользователя</th>
+                                    <th>Email</th>
+                                    <th>Имя</th>
+                                    <th>Фамилия</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="page" id="pagePermissions" style="display: none;">
+                    <div class="page-header page-header-with-filters">
+                        <h2>Разрешения и роли</h2>
+                        <div class="toolbar-inline toolbar-filters">
+                            <button type="button" class="btn btn-outline" id="btnInitPermissions" title="Создать стандартные разрешения для моделей">Инициализировать</button>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btnAddRole">Добавить роль</button>
+                    </div>
+                    <div class="permissions-layout">
+                        <div class="permissions-section">
+                            <h3>Роли</h3>
+                            <div class="table-wrap">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Название</th>
+                                            <th>Описание</th>
+                                            <th>Разрешений</th>
+                                            <th>Пользователей</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rolesTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="permissions-section">
+                            <h3>Разрешения по моделям</h3>
+                            <div id="permissionsByModel" class="permissions-by-model"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -153,12 +221,12 @@
                         <input type="text" id="schoolShortName" required>
                     </div>
                     <div class="form-group">
-                        <label for="schoolDirector">Директор <span class="required">*</span></label>
-                        <input type="text" id="schoolDirector" required>
+                        <label for="schoolDirector">Директор</label>
+                        <input type="text" id="schoolDirector">
                     </div>
                     <div class="form-group">
-                        <label for="schoolAddress">Адрес <span class="required">*</span></label>
-                        <input type="text" id="schoolAddress" required>
+                        <label for="schoolAddress">Адрес</label>
+                        <input type="text" id="schoolAddress">
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-outline" data-close="modalSchool">Отмена</button>
@@ -206,8 +274,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="childAddress">Адрес <span class="required">*</span></label>
-                        <input type="text" id="childAddress" required>
+                        <label for="childAddress">Адрес</label>
+                        <input type="text" id="childAddress">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -228,6 +296,122 @@
                         <button type="submit" class="btn btn-primary">Сохранить</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <div class="modal" id="modalUser" aria-hidden="true">
+            <div class="modal-backdrop" data-close="modalUser"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalUserTitle">Пользователь</h3>
+                    <button type="button" class="modal-close" data-close="modalUser" aria-label="Закрыть">&times;</button>
+                </div>
+                <form id="formUser">
+                    <input type="hidden" id="userId">
+                    <div class="form-group">
+                        <label for="userUsername">Имя пользователя <span class="required">*</span></label>
+                        <input type="text" id="userUsername" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">Email <span class="required">*</span></label>
+                        <input type="email" id="userEmail" required autocomplete="email">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userFirstName">Имя</label>
+                            <input type="text" id="userFirstName" autocomplete="given-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="userLastName">Фамилия</label>
+                            <input type="text" id="userLastName" autocomplete="family-name">
+                        </div>
+                    </div>
+                    <div class="form-group" id="userPasswordGroup">
+                        <label for="userPassword">Пароль <span id="userPasswordRequired" class="required">*</span></label>
+                        <input type="password" id="userPassword" autocomplete="new-password" placeholder="Оставьте пустым, чтобы не менять">
+                    </div>
+                    <div class="form-group" id="userPassword2Group">
+                        <label for="userPassword2">Повторите пароль</label>
+                        <input type="password" id="userPassword2" autocomplete="new-password">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" data-close="modalUser">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal" id="modalRole" aria-hidden="true">
+            <div class="modal-backdrop" data-close="modalRole"></div>
+            <div class="modal-content modal-content-wide">
+                <div class="modal-header">
+                    <h3 id="modalRoleTitle">Роль</h3>
+                    <button type="button" class="modal-close" data-close="modalRole" aria-label="Закрыть">&times;</button>
+                </div>
+                <form id="formRole">
+                    <input type="hidden" id="roleId">
+                    <div class="form-group">
+                        <label for="roleName">Название <span class="required">*</span></label>
+                        <input type="text" id="roleName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="roleDescription">Описание</label>
+                        <textarea id="roleDescription" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="roleIsGlobal">
+                            Глобальная роль
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Разрешения</label>
+                        <div id="rolePermissionsList" class="checkbox-list"></div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" data-close="modalRole">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal" id="modalRoleUsers" aria-hidden="true">
+            <div class="modal-backdrop" data-close="modalRoleUsers"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalRoleUsersTitle">Пользователи роли</h3>
+                    <button type="button" class="modal-close" data-close="modalRoleUsers" aria-label="Закрыть">&times;</button>
+                </div>
+                <form id="formRoleUsers">
+                    <input type="hidden" id="roleUsersRoleId">
+                    <div class="form-group">
+                        <label>Пользователи в роли</label>
+                        <div id="roleUsersList" class="checkbox-list"></div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" data-close="modalRoleUsers">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal" id="modalConfirm" aria-hidden="true">
+            <div class="modal-backdrop" data-close="modalConfirm"></div>
+            <div class="modal-content modal-content-sm">
+                <div class="modal-header">
+                    <h3 id="modalConfirmTitle">Подтверждение</h3>
+                    <button type="button" class="modal-close" data-close="modalConfirm" aria-label="Закрыть">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalConfirmMessage"></p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" data-close="modalConfirm">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="modalConfirmSubmit">Удалить</button>
+                </div>
             </div>
         </div>
 

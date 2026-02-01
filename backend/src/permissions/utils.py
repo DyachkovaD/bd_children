@@ -1,5 +1,14 @@
 from django.contrib.contenttypes.models import ContentType
-from .models import Permission, ModelPermissionConfig
+from .models import Permission, ModelPermissionConfig, UserRole
+
+
+def is_administrator(user):
+    """Проверяет, имеет ли пользователь роль Administrator или права staff/superuser."""
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+    return UserRole.objects.filter(users=user, name='Administrator').exists()
 
 
 def get_permission_codename(action, model):
@@ -93,9 +102,12 @@ def get_user_permissions(user, model_class=None, obj=None):
 
 def check_permission(user, permission_codename, model_class=None, obj=None):
     """
-    Проверяет наличие конкретного разрешения у пользователя
+    Проверяет наличие конкретного разрешения у пользователя.
+    Полный доступ имеют: superuser, staff, и пользователи с ролью Administrator.
     """
     if user.is_superuser or user.is_staff:
+        return True
+    if is_administrator(user):
         return True
 
     user_permissions = get_user_permissions(user, model_class, obj)
