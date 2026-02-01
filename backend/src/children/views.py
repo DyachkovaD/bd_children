@@ -3,12 +3,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Q, Count
-from datetime import datetime
+from django.http import HttpResponse
+from datetime import datetime, date, timedelta
 
 from permissions.permissions import ModelPermissionMixin
 from .models import School, Child
 from .serializers import SchoolSerializer, ChildSerializer, ChildCreateSerializer
 from .pagination import DataPageNumberPagination
+from .report_export import (
+    REPORT_FIELDS,
+    get_selected_headers,
+    build_xlsx,
+    build_docx,
+)
 
 
 class SchoolViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
@@ -79,11 +86,15 @@ class ChildViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
     Доступные фильтры через query parameters:
     - school: фильтрация по ID школы (точное совпадение)
     - q: поиск по имени, фамилии или отчеству (частичное совпадение)
+    - address: поиск по адресу (частичное вхождение)
+    - note: поиск по примечанию (частичное вхождение)
     - family_status: фильтрация по статусу семьи (точное совпадение)
     - health_status: фильтрация по состоянию здоровья (точное совпадение)
     - birth_year: фильтрация по году рождения
     - birthday_from: фильтрация по дате рождения (от указанной даты)
     - birthday_to: фильтрация по дате рождения (до указанной даты)
+    - age_from: минимальный возраст (полных лет)
+    - age_to: максимальный возраст (полных лет)
     """
     queryset = Child.objects.all()
     pagination_class = DataPageNumberPagination
@@ -100,19 +111,19 @@ class ChildViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
             return ChildCreateSerializer
         return ChildSerializer
 
-    def get_queryset(self):
+    def _apply_filters(self, queryset, params):
         """
-        Переопределение queryset с поддержкой ручной фильтрации.
+        Применяет фильтры к queryset. params — объект с методом .get() (query_params или dict).
         """
-        queryset = super().get_queryset()
+        def _get(key, default=''):
+            val = params.get(key, default)
+            return val.strip() if isinstance(val, str) else val
 
-        # Фильтрация по школе
-        school_id = self.request.query_params.get('school')
+        school_id = params.get('school')
         if school_id:
             queryset = queryset.filter(school_id=school_id)
 
-        # Поиск по имени, фамилии или отчеству
-        q = self.request.query_params.get('q', '').strip()
+        q = _get('q')
         if q:
             queryset = queryset.filter(
                 Q(first_name__icontains=q) |
@@ -120,40 +131,81 @@ class ChildViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
                 Q(patronymic__icontains=q)
             )
 
-        # Фильтрация по статусу семьи
-        family_status = self.request.query_params.get('family_status')
+        address = _get('address')
+        if address:
+            queryset = queryset.filter(address__icontains=address)
+
+        note = _get('note')
+        if note:
+            queryset = queryset.filter(note__icontains=note)
+
+        family_status = params.get('family_status')
         if family_status:
             queryset = queryset.filter(family_status__icontains=family_status)
 
-        # Фильтрация по состоянию здоровья
-        health_status = self.request.query_params.get('health_status')
+        health_status = params.get('health_status')
         if health_status:
             queryset = queryset.filter(health_status__icontains=health_status)
 
-        # Фильтрация по году рождения
-        birth_year = self.request.query_params.get('birth_year')
+        birth_year = params.get('birth_year')
         if birth_year:
             queryset = queryset.filter(birthday__year=birth_year)
 
-        # Фильтрация по диапазону дат рождения
-        birthday_from = self.request.query_params.get('birthday_from')
-        birthday_to = self.request.query_params.get('birthday_to')
-
+        birthday_from = params.get('birthday_from')
+        birthday_to = params.get('birthday_to')
         if birthday_from:
             try:
-                from_date = datetime.strptime(birthday_from, '%Y-%m-%d')
+                from_date = datetime.strptime(
+                    birthday_from if isinstance(birthday_from, str) else str(birthday_from),
+                    '%Y-%m-%d'
+                )
                 queryset = queryset.filter(birthday__gte=from_date)
-            except ValueError:
+            except (ValueError, TypeError):
                 pass
-
         if birthday_to:
             try:
-                to_date = datetime.strptime(birthday_to, '%Y-%m-%d')
+                to_date = datetime.strptime(
+                    birthday_to if isinstance(birthday_to, str) else str(birthday_to),
+                    '%Y-%m-%d'
+                )
                 queryset = queryset.filter(birthday__lte=to_date)
+            except (ValueError, TypeError):
+                pass
+
+        def _date_years_ago(years):
+            t = date.today()
+            try:
+                return date(t.year - years, t.month, t.day)
             except ValueError:
+                return date(t.year - years, 2, 28)
+
+        age_from_val = params.get('age_from')
+        if age_from_val is not None and age_from_val != '':
+            try:
+                age_from = int(age_from_val)
+                if age_from >= 0:
+                    max_birthday = _date_years_ago(age_from)
+                    queryset = queryset.filter(birthday__date__lte=max_birthday)
+            except (ValueError, TypeError):
+                pass
+
+        age_to_val = params.get('age_to')
+        if age_to_val is not None and age_to_val != '':
+            try:
+                age_to = int(age_to_val)
+                if age_to >= 0:
+                    min_birthday = _date_years_ago(age_to + 1) + timedelta(days=1)
+                    queryset = queryset.filter(birthday__date__gte=min_birthday)
+            except (ValueError, TypeError):
                 pass
 
         return queryset
+
+    def get_queryset(self):
+        """
+        Переопределение queryset с поддержкой ручной фильтрации.
+        """
+        return self._apply_filters(super().get_queryset(), self.request.query_params)
 
     @action(detail=False, methods=['get'])
     def by_school(self, request):
@@ -245,3 +297,60 @@ class ChildViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
             'family_status_statistics': list(family_status_stats),
             'health_status_statistics': list(health_status_stats),
         })
+
+    @action(detail=False, methods=['get'], url_path='report-fields')
+    def report_fields(self, request):
+        """
+        Список полей для отчёта (ключ и подпись для выбора на фронте).
+
+        Returns:
+        - Список { key, label } для построения чекбоксов выбора полей.
+        """
+        return Response([
+            {'key': key, 'label': label}
+            for key, label in REPORT_FIELDS
+        ])
+
+    @action(detail=False, methods=['post'], url_path='report')
+    def report(self, request):
+        """
+        Скачивание отчёта по учащимся (POST). Все параметры в теле запроса.
+
+        Body (JSON):
+        - format: xlsx или docx (обязательный)
+        - fields: список ключей полей или строка через запятую (опционально; по умолчанию — все поля)
+        - Фильтры (те же, что на странице «Учащиеся»): school, q, address, note,
+          family_status, health_status, birth_year, birthday_from, birthday_to, age_from, age_to.
+        """
+        data = request.data or {}
+        fmt = (data.get('format') or '').strip().lower()
+        if fmt not in ('xlsx', 'docx'):
+            return Response(
+                {'error': 'Укажите format: "xlsx" или "docx"'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        queryset = self._apply_filters(Child.objects.all(), data)
+        serializer = self.get_serializer(queryset, many=True)
+        rows_data = serializer.data
+        fields_value = data.get('fields')
+        if isinstance(fields_value, list):
+            fields_param = ','.join(str(f).strip() for f in fields_value if f)
+        else:
+            fields_param = (fields_value or '').strip() if isinstance(fields_value, str) else ''
+        selected_headers = get_selected_headers(fields_param)
+        if not selected_headers:
+            return Response(
+                {'error': 'Выберите хотя бы одно поле для отчёта'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if fmt == 'xlsx':
+            content = build_xlsx(rows_data, selected_headers)
+            content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            filename = 'report_children.xlsx'
+        else:
+            content = build_docx(rows_data, selected_headers)
+            content_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            filename = 'report_children.docx'
+        response = HttpResponse(content, content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response

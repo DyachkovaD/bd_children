@@ -459,6 +459,15 @@ select.input {
   color: #c0392b;
 }
 
+.btn-icon-view {
+  color: var(--text-muted);
+}
+
+.btn-icon-view:hover {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary);
+}
+
 .btn-icon-users {
   color: var(--text-muted);
 }
@@ -767,11 +776,18 @@ label .required {
 }
 
 #childrenTableBody td:nth-child(5) {
+  /* Возраст - компактно */
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+}
+
+#childrenTableBody td:nth-child(6) {
   /* Статус семьи - компактно */
   max-width: 140px;
 }
 
-#childrenTableBody td:nth-child(6) {
+#childrenTableBody td:nth-child(7) {
   /* Состояние здоровья - расширяем */
   min-width: 150px;
 }
@@ -783,11 +799,17 @@ label .required {
 }
 
 #pageChildren .table thead th:nth-child(5) {
+  /* Возраст - header */
+  width: 1%;
+  text-align: center;
+}
+
+#pageChildren .table thead th:nth-child(6) {
   /* Статус семьи - header */
   max-width: 140px;
 }
 
-#pageChildren .table thead th:nth-child(6) {
+#pageChildren .table thead th:nth-child(7) {
   /* Состояние здоровья - header */
   min-width: 150px;
 }
@@ -883,6 +905,34 @@ label .required {
   vertical-align: middle;
 }
 
+.report-description {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.report-fields-list {
+  margin-bottom: 0.5rem;
+}
+
+.report-fields-list + .btn-sm {
+  margin-right: 0.5rem;
+}
+
+.report-format-options {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.report-format-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: normal;
+}
+
 #formRole .form-group {
   margin-bottom: 0.65rem;
 }
@@ -910,4 +960,47 @@ label .required {
 #formRole .modal-actions {
   margin-top: 1rem;
   padding-top: 0.75rem;
+}
+
+/* View-only form (child details) */
+.modal .view-form {
+  padding: 1.25rem 1.5rem;
+}
+
+.view-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.view-form-group {
+  margin-bottom: 1rem;
+}
+
+.view-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.view-form-row .view-form-group {
+  margin-bottom: 0;
+}
+
+.view-form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.view-form-value {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.view-form-value-block {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
 }

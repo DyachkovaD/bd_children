@@ -112,15 +112,20 @@
                                 <option value="">Все школы</option>
                             </select>
                             <input type="text" id="filterChildSearch" class="input" placeholder="ФИО" maxlength="40">
+                            <input type="text" id="filterChildAddress" class="input" placeholder="Адрес" maxlength="100" title="Поиск по адресу (частичное вхождение)">
+                            <input type="text" id="filterChildNote" class="input" placeholder="Примечание" maxlength="200" title="Поиск по примечанию (частичное вхождение)">
                             <select id="filterChildFamily" class="input" title="Статус семьи">
                                 <option value="">Семья</option>
                             </select>
                             <select id="filterChildHealth" class="input" title="Здоровье">
                                 <option value="">Здоровье</option>
                             </select>
+                            <input type="number" id="filterChildAgeFrom" class="input" placeholder="Возраст от" min="0" max="99" title="Минимальный возраст (полных лет)">
+                            <input type="number" id="filterChildAgeTo" class="input" placeholder="Возраст до" min="0" max="99" title="Максимальный возраст (полных лет)">
                             <button type="button" class="btn btn-search" id="btnFilterChildren">Найти</button>
                             <button type="button" class="btn btn-outline" id="btnClearChildFilters">Сбросить</button>
                         </div>
+                        <button type="button" class="btn btn-outline" id="btnReportChildren">Скачать отчёт</button>
                         <button type="button" class="btn btn-primary" id="btnAddChild">Добавить учащегося</button>
                     </div>
                     <div class="table-wrap">
@@ -131,6 +136,7 @@
                                     <th>Класс</th>
                                     <th>Школа</th>
                                     <th>Дата рождения</th>
+                                    <th>Возраст</th>
                                     <th>Статус семьи</th>
                                     <th>Состояние здоровья</th>
                                     <th></th>
@@ -236,6 +242,71 @@
             </div>
         </div>
 
+        <div class="modal" id="modalChildView" aria-hidden="true">
+            <div class="modal-backdrop" data-close="modalChildView"></div>
+            <div class="modal-content modal-content-wide">
+                <div class="modal-header">
+                    <h3 id="modalChildViewTitle">Подробная информация об учащемся</h3>
+                    <button type="button" class="modal-close" data-close="modalChildView" aria-label="Закрыть">&times;</button>
+                </div>
+                <div class="modal-body view-form" id="childViewContent">
+                    <div class="view-form-row">
+                        <div class="view-form-group">
+                            <span class="view-form-label">Фамилия</span>
+                            <span class="view-form-value" id="viewChildLastName">—</span>
+                        </div>
+                        <div class="view-form-group">
+                            <span class="view-form-label">Имя</span>
+                            <span class="view-form-value" id="viewChildFirstName">—</span>
+                        </div>
+                        <div class="view-form-group">
+                            <span class="view-form-label">Отчество</span>
+                            <span class="view-form-value" id="viewChildPatronymic">—</span>
+                        </div>
+                    </div>
+                    <div class="view-form-row">
+                        <div class="view-form-group">
+                            <span class="view-form-label">Дата рождения</span>
+                            <span class="view-form-value" id="viewChildBirthday">—</span>
+                        </div>
+                        <div class="view-form-group">
+                            <span class="view-form-label">Возраст</span>
+                            <span class="view-form-value" id="viewChildAge">—</span>
+                        </div>
+                        <div class="view-form-group">
+                            <span class="view-form-label">Класс</span>
+                            <span class="view-form-value" id="viewChildClass">—</span>
+                        </div>
+                        <div class="view-form-group">
+                            <span class="view-form-label">Школа</span>
+                            <span class="view-form-value" id="viewChildSchool">—</span>
+                        </div>
+                    </div>
+                    <div class="view-form-group">
+                        <span class="view-form-label">Адрес</span>
+                        <span class="view-form-value" id="viewChildAddress">—</span>
+                    </div>
+                    <div class="view-form-row">
+                        <div class="view-form-group">
+                            <span class="view-form-label">Состояние здоровья</span>
+                            <span class="view-form-value" id="viewChildHealth">—</span>
+                        </div>
+                        <div class="view-form-group">
+                            <span class="view-form-label">Статус семьи</span>
+                            <span class="view-form-value" id="viewChildFamily">—</span>
+                        </div>
+                    </div>
+                    <div class="view-form-group">
+                        <span class="view-form-label">Примечание</span>
+                        <span class="view-form-value view-form-value-block" id="viewChildNote">—</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" data-close="modalChildView">Закрыть</button>
+                </div>
+            </div>
+        </div>
+
         <div class="modal" id="modalChild" aria-hidden="true">
             <div class="modal-backdrop" data-close="modalChild"></div>
             <div class="modal-content modal-content-wide">
@@ -296,6 +367,36 @@
                         <button type="submit" class="btn btn-primary">Сохранить</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <div class="modal" id="modalChildReport" aria-hidden="true">
+            <div class="modal-backdrop" data-close="modalChildReport"></div>
+            <div class="modal-content modal-content-wide">
+                <div class="modal-header">
+                    <h3>Скачать отчёт по учащимся</h3>
+                    <button type="button" class="modal-close" data-close="modalChildReport" aria-label="Закрыть">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="report-description">Используются текущие фильтры страницы «Учащиеся». Выберите поля и формат.</p>
+                    <div class="form-group">
+                        <label>Поля для отчёта</label>
+                        <div id="reportFieldsList" class="checkbox-list report-fields-list"></div>
+                        <button type="button" class="btn btn-outline btn-sm" id="reportSelectAll">Выбрать все</button>
+                        <button type="button" class="btn btn-outline btn-sm" id="reportDeselectAll">Снять все</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Формат</label>
+                        <div class="report-format-options">
+                            <label><input type="radio" name="reportFormat" value="xlsx" checked> Excel (xlsx)</label>
+                            <label><input type="radio" name="reportFormat" value="docx"> Word (docx)</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" data-close="modalChildReport">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="reportDownloadBtn">Скачать</button>
+                </div>
             </div>
         </div>
 

@@ -24,7 +24,7 @@
     const loadingRow = (colspan, text) => '<tr><td colspan="' + colspan + '" class="empty-state">' + (text || 'Загрузка…') + '</td></tr>';
     const tbody = (id) => document.getElementById(id);
     if (tbody('schoolsTableBody')) tbody('schoolsTableBody').innerHTML = loadingRow(5);
-    if (tbody('childrenTableBody')) tbody('childrenTableBody').innerHTML = loadingRow(7);
+    if (tbody('childrenTableBody')) tbody('childrenTableBody').innerHTML = loadingRow(8);
     if (tbody('usersTableBody')) tbody('usersTableBody').innerHTML = loadingRow(5);
     if (tbody('rolesTableBody')) tbody('rolesTableBody').innerHTML = loadingRow(5);
     const paginationIds = ['schoolsPagination', 'childrenPagination'];
@@ -488,13 +488,21 @@
     childrenPage = page;
     const schoolId = document.getElementById('filterChildSchool').value;
     const q = document.getElementById('filterChildSearch').value.trim();
+    const address = document.getElementById('filterChildAddress').value.trim();
+    const note = document.getElementById('filterChildNote').value.trim();
     const familyStatus = document.getElementById('filterChildFamily').value;
     const healthStatus = document.getElementById('filterChildHealth').value;
+    const ageFrom = document.getElementById('filterChildAgeFrom').value.trim();
+    const ageTo = document.getElementById('filterChildAgeTo').value.trim();
     const params = new URLSearchParams();
     if (schoolId) params.set('school', schoolId);
     if (q) params.set('q', q);
+    if (address) params.set('address', address);
+    if (note) params.set('note', note);
     if (familyStatus) params.set('family_status', familyStatus);
     if (healthStatus) params.set('health_status', healthStatus);
+    if (ageFrom) params.set('age_from', ageFrom);
+    if (ageTo) params.set('age_to', ageTo);
     params.set('page', String(page));
     params.set('page_size', String(PAGE_SIZE));
     try {
@@ -504,7 +512,7 @@
       const count = resp.count ?? 0;
       const tbody = document.getElementById('childrenTableBody');
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Нет данных</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Нет данных</td></tr>';
       } else {
         const canEditChild = hasModelPermission('child', 'change');
         const canDeleteChild = hasModelPermission('child', 'delete');
@@ -514,14 +522,19 @@
         <td>${c.education_class}</td>
         <td>${escapeHtml(c.school_name || '—')}</td>
         <td class="date-cell">${formatDate(c.birthday)}</td>
+        <td>${c.age != null ? c.age : '—'}</td>
         <td>${escapeHtml(c.family_status || '—')}</td>
         <td>${escapeHtml(c.health_status || '—')}</td>
         <td class="actions">
+          <button type="button" class="btn-icon btn-icon-view btn-view-child" data-id="${c.id}" title="Подробная информация"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
           ${canEditChild ? '<button type="button" class="btn-icon btn-icon-edit btn-edit-child" data-id="' + c.id + '" title="Изменить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>' : ''}
           ${canDeleteChild ? '<button type="button" class="btn-icon btn-icon-delete btn-delete-child" data-id="' + c.id + '" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>' : ''}
         </td>
       </tr>
     `).join('');
+        tbody.querySelectorAll('.btn-view-child').forEach(btn => {
+          btn.addEventListener('click', () => viewChild(Number(btn.getAttribute('data-id'))));
+        });
         tbody.querySelectorAll('.btn-edit-child').forEach(btn => {
           btn.addEventListener('click', () => editChild(Number(btn.getAttribute('data-id'))));
         });
@@ -533,7 +546,7 @@
     } catch (err) {
       const msg = getPermissionErrorMsg(err, 'Ошибка загрузки учащихся');
       const tbody = document.getElementById('childrenTableBody');
-      if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="empty-state">' + escapeHtml(msg) + '</td></tr>';
+      if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="empty-state">' + escapeHtml(msg) + '</td></tr>';
       const paginationEl = document.getElementById('childrenPagination');
       if (paginationEl) paginationEl.innerHTML = '';
       showToast(msg, 'error');
@@ -575,12 +588,123 @@
     } catch (_) {}
   }
 
+  function getChildrenReportPayload() {
+    const schoolId = document.getElementById('filterChildSchool').value;
+    const q = document.getElementById('filterChildSearch').value.trim();
+    const address = document.getElementById('filterChildAddress').value.trim();
+    const note = document.getElementById('filterChildNote').value.trim();
+    const familyStatus = document.getElementById('filterChildFamily').value;
+    const healthStatus = document.getElementById('filterChildHealth').value;
+    const ageFrom = document.getElementById('filterChildAgeFrom').value.trim();
+    const ageTo = document.getElementById('filterChildAgeTo').value.trim();
+    const payload = {};
+    if (schoolId) payload.school = schoolId;
+    if (q) payload.q = q;
+    if (address) payload.address = address;
+    if (note) payload.note = note;
+    if (familyStatus) payload.family_status = familyStatus;
+    if (healthStatus) payload.health_status = healthStatus;
+    if (ageFrom) payload.age_from = ageFrom;
+    if (ageTo) payload.age_to = ageTo;
+    return payload;
+  }
+
+  document.getElementById('btnReportChildren').addEventListener('click', async function () {
+    try {
+      const fieldsData = await api('/children/report-fields/');
+      const list = Array.isArray(fieldsData) ? fieldsData : (fieldsData?.data || []);
+      const container = document.getElementById('reportFieldsList');
+      container.innerHTML = list.map(f => '<label><input type="checkbox" class="report-field-cb" value="' + escapeHtml(f.key) + '"> ' + escapeHtml(f.label) + '</label>').join('');
+      container.querySelectorAll('.report-field-cb').forEach(cb => { cb.checked = true; });
+      document.querySelectorAll('#modalChildReport input[name="reportFormat"]').forEach(r => { r.checked = r.value === 'xlsx'; });
+      openModal('modalChildReport');
+    } catch (err) {
+      showToast(getPermissionErrorMsg(err, 'Ошибка загрузки полей отчёта'), 'error');
+    }
+  });
+
+  document.getElementById('reportSelectAll').addEventListener('click', function () {
+    document.querySelectorAll('#reportFieldsList .report-field-cb').forEach(cb => { cb.checked = true; });
+  });
+  document.getElementById('reportDeselectAll').addEventListener('click', function () {
+    document.querySelectorAll('#reportFieldsList .report-field-cb').forEach(cb => { cb.checked = false; });
+  });
+
+  document.getElementById('reportDownloadBtn').addEventListener('click', async function () {
+    const checked = document.querySelectorAll('#reportFieldsList .report-field-cb:checked');
+    const fields = Array.from(checked).map(cb => cb.value);
+    if (!fields.length) {
+      showToast('Выберите хотя бы одно поле для отчёта', 'error');
+      return;
+    }
+    const formatEl = document.querySelector('#modalChildReport input[name="reportFormat"]:checked');
+    const format = formatEl ? formatEl.value : 'xlsx';
+    const payload = getChildrenReportPayload();
+    payload.format = format;
+    payload.fields = fields;
+    const url = API_BASE + '/children/report/';
+    const token = getToken();
+    const doFetch = () => fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(getToken() ? { 'Authorization': 'Bearer ' + getToken() } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+    try {
+      let res = await doFetch();
+      if (res.status === 401 && token) {
+        const refresh = localStorage.getItem(REFRESH_KEY);
+        if (refresh) {
+          const refreshRes = await fetch(API_BASE + '/token/refresh/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh }),
+          });
+          if (refreshRes.ok) {
+            const data = await refreshRes.json();
+            if (data.access) {
+              setTokens(data.access, null);
+              res = await doFetch();
+            }
+          }
+        }
+      }
+      if (!res.ok) {
+        const errText = await res.text();
+        let msg = 'Ошибка загрузки отчёта';
+        try {
+          const errData = JSON.parse(errText);
+          if (errData.error) msg = errData.error;
+        } catch (_) {}
+        showToast(msg, 'error');
+        return;
+      }
+      const blob = await res.blob();
+      const filename = format === 'xlsx' ? 'report_children.xlsx' : 'report_children.docx';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      closeModal('modalChildReport');
+      showToast('Отчёт скачан');
+    } catch (err) {
+      showToast('Ошибка загрузки отчёта', 'error');
+    }
+  });
+
   document.getElementById('btnFilterChildren').addEventListener('click', () => loadChildren(1));
   document.getElementById('btnClearChildFilters').addEventListener('click', function () {
     document.getElementById('filterChildSchool').value = '';
     document.getElementById('filterChildSearch').value = '';
+    document.getElementById('filterChildAddress').value = '';
+    document.getElementById('filterChildNote').value = '';
     document.getElementById('filterChildFamily').value = '';
     document.getElementById('filterChildHealth').value = '';
+    document.getElementById('filterChildAgeFrom').value = '';
+    document.getElementById('filterChildAgeTo').value = '';
     loadChildren(1);
   });
   document.getElementById('btnAddChild').addEventListener('click', async function () {
@@ -639,6 +763,28 @@
       showToast(err.data?.detail || (typeof err.data === 'object' ? JSON.stringify(err.data) : 'Ошибка'), 'error');
     }
   });
+
+  async function viewChild(id) {
+    try {
+      const c = await api('/children/' + id + '/');
+      if (!c) return;
+      document.getElementById('modalChildViewTitle').textContent = 'Подробная информация: ' + escapeHtml((c.last_name || '') + ' ' + (c.first_name || ''));
+      document.getElementById('viewChildLastName').textContent = c.last_name || '—';
+      document.getElementById('viewChildFirstName').textContent = c.first_name || '—';
+      document.getElementById('viewChildPatronymic').textContent = c.patronymic || '—';
+      document.getElementById('viewChildBirthday').textContent = formatDate(c.birthday);
+      document.getElementById('viewChildAge').textContent = c.age != null ? c.age + ' лет' : '—';
+      document.getElementById('viewChildClass').textContent = c.education_class != null ? c.education_class : '—';
+      document.getElementById('viewChildSchool').textContent = c.school_name || '—';
+      document.getElementById('viewChildAddress').textContent = c.address || '—';
+      document.getElementById('viewChildHealth').textContent = c.health_status || '—';
+      document.getElementById('viewChildFamily').textContent = c.family_status || '—';
+      document.getElementById('viewChildNote').textContent = c.note || '—';
+      openModal('modalChildView');
+    } catch (err) {
+      showToast(getPermissionErrorMsg(err, 'Ошибка загрузки данных учащегося'), 'error');
+    }
+  }
 
   async function editChild(id) {
     try {
