@@ -311,32 +311,28 @@ class ChildViewSet(ModelPermissionMixin, viewsets.ModelViewSet):
             for key, label in REPORT_FIELDS
         ])
 
-    @action(detail=False, methods=['post'], url_path='report')
+    @action(detail=False, methods=['get'], url_path='report')
     def report(self, request):
         """
-        Скачивание отчёта по учащимся (POST). Все параметры в теле запроса.
+        Скачивание отчёта по учащимся (те же фильтры, что на странице «Учащиеся»).
 
-        Body (JSON):
+        Query parameters:
         - format: xlsx или docx (обязательный)
-        - fields: список ключей полей или строка через запятую (опционально; по умолчанию — все поля)
-        - Фильтры (те же, что на странице «Учащиеся»): school, q, address, note,
-          family_status, health_status, birth_year, birthday_from, birthday_to, age_from, age_to.
+        - fields: через запятую ключи полей (опционально; по умолчанию — все поля)
+
+        Остальные параметры — те же фильтры, что у списка: school, q, address, note,
+        family_status, health_status, birth_year, birthday_from, birthday_to, age_from, age_to.
         """
-        data = request.data or {}
-        fmt = (data.get('format') or '').strip().lower()
+        fmt = (request.query_params.get('format') or '').strip().lower()
         if fmt not in ('xlsx', 'docx'):
             return Response(
-                {'error': 'Укажите format: "xlsx" или "docx"'},
+                {'error': 'Укажите format=xlsx или format=docx'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        queryset = self._apply_filters(Child.objects.all(), data)
+        queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         rows_data = serializer.data
-        fields_value = data.get('fields')
-        if isinstance(fields_value, list):
-            fields_param = ','.join(str(f).strip() for f in fields_value if f)
-        else:
-            fields_param = (fields_value or '').strip() if isinstance(fields_value, str) else ''
+        fields_param = request.query_params.get('fields', '').strip()
         selected_headers = get_selected_headers(fields_param)
         if not selected_headers:
             return Response(
