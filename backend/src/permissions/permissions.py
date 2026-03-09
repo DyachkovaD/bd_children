@@ -142,30 +142,40 @@ class ModelPermissionMixin:
         """
         Динамически настраивает разрешения в зависимости от действия
         """
-        permission_classes = []
-
         if self.action in ['list', 'retrieve']:
-            permission_classes = [HasModelPermission('view_{model}')]
+            permission_instances = [HasModelPermission('view_{model}')]
         elif self.action == 'create':
-            permission_classes = [HasModelPermission('add_{model}')]
+            permission_instances = [HasModelPermission('add_{model}')]
         elif self.action in ['update', 'partial_update']:
-            permission_classes = [HasModelPermission('change_{model}')]
+            permission_instances = [HasModelPermission('change_{model}')]
         elif self.action == 'destroy':
-            permission_classes = [HasModelPermission('delete_{model}')]
+            permission_instances = [HasModelPermission('delete_{model}')]
         else:
-            permission_classes = [CustomObjectPermission]
+            # Для нестандартных действий ориентируемся на HTTP-метод:
+            # безопасные методы (GET/HEAD/OPTIONS) считаем чтением (view),
+            # а методы записи — как соответствующие CRUD-действия.
+            method = getattr(self.request, 'method', None)
+            if method in permissions.SAFE_METHODS:
+                permission_instances = [HasModelPermission('view_{model}')]
+            elif method == 'POST':
+                permission_instances = [HasModelPermission('add_{model}')]
+            elif method in ['PUT', 'PATCH']:
+                permission_instances = [HasModelPermission('change_{model}')]
+            elif method == 'DELETE':
+                permission_instances = [HasModelPermission('delete_{model}')]
+            else:
+                # Запасной вариант — объектные разрешения
+                return [CustomObjectPermission()]
 
         # Заменяем плейсхолдер {model} на имя реальной модели
         model_name = self.queryset.model._meta.model_name
-        for i, perm_instance in enumerate(permission_classes):
-            if hasattr(perm_instance, 'permission_codename') and perm_instance.permission_codename:
-                perm_class = type(perm_instance)
-                permission_classes[i] = type(perm_class.__name__, (perm_class,), {
-                    'permission_codename': perm_instance.permission_codename.format(model=model_name),
-                    'model_class': self.queryset.model
-                })
+        for perm in permission_instances:
+            if getattr(perm, 'permission_codename', None):
+                perm.permission_codename = perm.permission_codename.format(model=model_name)
+                perm.model_class = self.queryset.model
 
-        return [permission() for permission in permission_classes]
+        # DRF ожидает список инстансов, поэтому возвращаем уже сконфигурированные объекты
+        return permission_instances
 
 
 class IsAdministrator(permissions.BasePermission):
